@@ -26,9 +26,10 @@ def get_text():
     
     #testing it on practice doc
     full_text = ""
-
+    previous_empty = False
     document = Document("try.docx")
     for paragraph in document.paragraphs:
+        text = paragraph.text.strip()
         full_text += paragraph.text + "\n"  
     return full_text.strip()
 
@@ -40,6 +41,9 @@ def chunk_text(text):
     hit_limit = False
 
     for line in text.splitlines():
+        if line.strip():
+            if not line.endswith(" "):
+                line += " "
         for letter in line:
             the_string += letter
             letter_count += 1
