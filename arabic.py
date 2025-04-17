@@ -26,10 +26,8 @@ def get_text():
     
     #testing it on practice doc
     full_text = ""
-    previous_empty = False
     document = Document("try.docx")
     for paragraph in document.paragraphs:
-        text = paragraph.text.strip()
         full_text += paragraph.text + "\n"  
     return full_text.strip()
 
@@ -47,7 +45,7 @@ def chunk_text(text):
         for letter in line:
             the_string += letter
             letter_count += 1
-            if letter_count >= 500:
+            if letter_count >= 300:
                 hit_limit = True  
             if hit_limit and letter in arabic_punct: # keep on going until I hit a punctuation mark
                 chunks.append(the_string.strip())
@@ -60,24 +58,6 @@ def chunk_text(text):
 
     return chunks
      
-'''def generate_embeddings(text_chunks):
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-    model = BertModel.from_pretrained('bert-base-uncased')
-    embeddings = []
-    print("hello")
-    for chunk in text_chunks: #going through each chunk in the list
-                        #tokenizer --> converts it into numbers; passed in the chunk, return_tensors keeps the right format
-                                    # truncation incase it exceeeds 512 words, paddding to keep length the same, max_length
-        inputs = tokenizer(chunk, return_tensors='pt', truncation=True, padding=True, max_length=512)
-        with torch.no_grad(): #not going to train the model
-                    # now we feed the tokinized/numbered text into the model
-                    #.last_hidden_state --> matrix full of vectors
-                    #.mean(dim = 1) --> takes avg of vectors in 1 sentence (question will this reduce the meaning if you're taking the avg of a long sentence)
-                    #.squeeze().numpy returns it back in a list for us
-            outputs = model(**inputs).last_hidden_state.mean(dim=1).squeeze().numpy()
-            embeddings.append(outputs) #each chunk now has its own embedding/list of nums
-    return embeddings'''
-
 def generate_embeddings(text_chunks):
     model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     embeddings = []
@@ -130,44 +110,3 @@ for item in dot_products:
 max_text = df.loc[max_index, 'text'] 
 print("\nAnswer: ", max_text)
 
-'''
-saving code: 
-
-def chunk_text(text):
-    chunks = []
-    lines = text.splitlines() #returns a list
-    line_till_5 = 0
-    cur_chunk = []
-    blank_count = 0
-    for line in lines: 
-        if line.strip() == "":
-            blank_count += 1
-        else: 
-            blank_count = 0
-
-        if blank_count >= 2:
-            if cur_chunk: 
-                chunks.append("\n".join(cur_chunk).strip())
-                cur_chunk = []
-        else: 
-            cur_chunk.append(line)
-    if cur_chunk:
-        chunks.append("\n".join(cur_chunk).strip())
-
-    return chunks
-        
-    # chunknig it by 500 chars
-    def chunk_text(text, chunk_size=200):
-        chunks = []
-        for i in range(0, len(text), chunk_size):
-            chunks.append(text[i:i+chunk_size])#going by the chunk number in this case 500
-                #append the chunks into my chunk list so that each slot has each chunk
-        return chunks
-
-    doc = fitz.open(pdf_path)
-    for pg_num in range(len(doc)):
-        pg = doc.load_page(pg_num)
-        full_text += pg.get_text() + "\n"  
-    return full_text.strip()
-
-'''
