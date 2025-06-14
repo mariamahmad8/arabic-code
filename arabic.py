@@ -23,6 +23,7 @@ annoy_index = None
 
 
 def get_text():
+    #testing it on actual docs
     '''full_text = ""
     for i in range(1,46): 
         document_name = "/Users/mariam/Desktop/nis2p/word/" + str(i) + ".docx"
@@ -31,6 +32,7 @@ def get_text():
             full_text += paragraph.text + "\n"  
     return full_text.strip()'''
     
+    #testing it on practice doc
     full_text = ""
     document = Document("try.docx")
     for paragraph in document.paragraphs:
@@ -48,10 +50,11 @@ def chunk_text(text):
 
      
 def generate_embeddings(text_chunks):
+    #model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
     model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     embeddings = []
     print("hello")
-    for chunk in text_chunks:
+    for chunk in text_chunks: #going through each chunk in the list
         emb = list(model.encode(chunk))
         embeddings.append(emb)
     return embeddings
@@ -71,9 +74,9 @@ def generate_embeddings(text_chunks):
     print("\nAnswer: ", max_text)'''
 
 
-# Initialize df and annoy_index globally before server starts
+
 file_path = "/Users/mariam/Desktop/nis2p/output_embeddings.parquet"
-if os.path.exists(file_path): 
+if os.path.exists(file_path): #only running if needed
     df = pd.read_parquet(file_path)
 else: 
     full_text = get_text()
@@ -100,14 +103,14 @@ class query_server(BaseHTTPRequestHandler): #https://www.youtube.com/watch?v=DeF
             return
 
         query_embedding = generate_embeddings([query])[0]
-        index = annoy_index.get_nns_by_vector(query_embedding, 1)[0]
+        index = annoy_index.get_nns_by_vector(query_embedding, 1)[0]#one because we want the only closest match. changing that number
+                                                                    #would to 5 for example would release top 5. 
         result = df.loc[index, 'text']
 
         self.send_response(200)
         self.send_header('Content-Type', 'text/plain')
         self.end_headers()
         self.wfile.write(result.encode('utf-8'))
-
 
 def run_server(port=8000):
     server = HTTPServer(('', port), query_server)
